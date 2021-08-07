@@ -44,6 +44,7 @@
           data: [30, 40, 45, 50, 49, 60, 70, 91]
         }],
         gecko_says: '',
+        coin_list: {}
       }
     },
     methods: {},
@@ -51,6 +52,10 @@
     mounted(){
       this.$api.get('/ping').then((response) => {
         this.gecko_says = response.data.gecko_says;
+      });
+
+      this.$api.get('/coins/list').then((response) => {
+        this.coin_list = response.data;
       });
     },
     unmounted(){

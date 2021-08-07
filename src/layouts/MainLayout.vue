@@ -38,8 +38,9 @@
   export default defineComponent({
     name: 'MainLayout',
     components: {},
-    setup () {
+    data(){
       return {
+        coin_list: {}
       }
     },
     methods: {

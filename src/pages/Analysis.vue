@@ -36,7 +36,7 @@
         </q-card>
       </div>
       <div class="col-3">
-        <WatchList @analyze="analyzeCrypto($event)" :cryptoList="['bitcoin', 'ethereum', 'tether', 'cardano', 'ripple', 'dogecoin', 'polkadot', 'uniswap', 'solana', 'chainlink', 'litecoin']"/>
+        <WatchList @analyze="analyzeCrypto($event)" />
       </div>
     </div>
   </q-page>
@@ -45,6 +45,7 @@
 <script>
   import { defineComponent } from 'vue';
   import WatchList from '../components/WatchList.vue';
+  import {ls_set, ls_get} from '../utility/localDB';
 
   export default defineComponent({
     name: 'Analysis',
@@ -73,7 +74,7 @@
         todayData: {},
         loading: false,
         currentView: '',
-        watchList: ['bitcoin', 'ethereum', 'tether', 'cardano', 'ripple', 'dogecoin', 'polkadot', 'uniswap', 'solana', 'chainlink', 'litecoin'],
+        watchList: null,
         crypto: {}
       }
     },
@@ -94,8 +95,8 @@
           this.today();
         }
       },
-      async daily(days){
-        this.loading = true;
+      async daily(days, load = true){
+        this.loading = load;
         this.currentView = `daily${days}`
 
         // Calculate & Display daily average prices over the past 100 days
@@ -110,8 +111,8 @@
           return Math.round(price[1] * 10000) / 10000;
         });
       },
-      async hourly(days){
-        this.loading = true;
+      async hourly(days, load = true){
+        this.loading = load;
         this.currentView = `hourly${days}`
 
         // Display hourly prices over the past 30 days
@@ -126,8 +127,8 @@
           return Math.round(price[1] * 10000) / 10000;
         });
       },
-      async today(){
-        this.loading = true;
+      async today(load = true){
+        this.loading = load;
         this.currentView = `today`
 
         // Display hourly prices over the past 30 days
@@ -145,9 +146,16 @@
     },
     watch: {},
     mounted(){
+      this.watchList = ls_get('watchlist');
+
+      if(this.watchList == null || this.watchList.length < 1){
+        this.watchList = ['bitcoin', 'ethereum', 'tether'];
+        ls_set('watchlist', this.watchList);
+      }
+
       this.$api.get(`/coins/markets?vs_currency=usd&ids=${this.watchList[0]}`).then((response) => {
         this.crypto = response.data[0];
-        this.daily(100);
+        this.daily(100, false);
       });
     },
     unmounted(){

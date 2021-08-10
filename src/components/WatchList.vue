@@ -21,11 +21,11 @@
     components: {
       CryptoCard
     },
-    props: {
-    },
+    props: [
+      'cryptoList',
+    ],
     data(){
       return {
-        cryptoList:['bitcoin', 'ethereum', 'tether', 'cardano', 'ripple', 'dogecoin', 'polkadot', 'uniswap', 'solana', 'chainlink', 'litecoin'],
         coinMarketData: {}
       }
     },

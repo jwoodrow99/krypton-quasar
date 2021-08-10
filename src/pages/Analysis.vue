@@ -4,7 +4,7 @@
       <div class="col-9">
         <q-card>
           <q-card-section class="row">
-            <div class="text-h6">Trading chart of {{crypto.name}} [{{crypto.symbol.toUpperCase()}}]</div>
+            <div class="text-h6">Trading chart of {{crypto?.name}} [{{crypto?.symbol?.toUpperCase()}}]</div>
           </q-card-section>
 
           <q-card-section>
@@ -36,7 +36,7 @@
         </q-card>
       </div>
       <div class="col-3">
-        <WatchList @analyze="analyzeCrypto($event)"/>
+        <WatchList @analyze="analyzeCrypto($event)" :cryptoList="['bitcoin', 'ethereum', 'tether', 'cardano', 'ripple', 'dogecoin', 'polkadot', 'uniswap', 'solana', 'chainlink', 'litecoin']"/>
       </div>
     </div>
   </q-page>
@@ -73,34 +73,8 @@
         todayData: {},
         loading: false,
         currentView: '',
-        crypto: {
-          id: "cardano",
-          symbol: "ada",
-          name: "Cardano",
-          image: "https://assets.coingecko.com/coins/images/975/large/cardano.png?1547034860",
-          current_price: 1.44,
-          market_cap: 46161102968,
-          market_cap_rank: 5,
-          fully_diluted_valuation: 64779652161,
-          total_volume: 1778221970,
-          high_24h: 1.44,
-          low_24h: 1.36,
-          price_change_24h: 0.061843,
-          price_change_percentage_24h: 4.48382,
-          market_cap_change_24h: 1962621949,
-          market_cap_change_percentage_24h: 4.44047,
-          circulating_supply: 32066390668.4135,
-          total_supply: 45000000000.0,
-          max_supply: 45000000000.0,
-          ath: 2.45,
-          ath_change_percentage: -41.13287,
-          ath_date: "2021-05-16T07:44:28.033Z",
-          atl: 0.01925275,
-          atl_change_percentage: 7377.28821,
-          atl_date: "2020-03-13T02:22:55.044Z",
-          roi: null,
-          last_updated: "2021-08-07T03:22:43.512Z"
-        }
+        watchList: ['bitcoin', 'ethereum', 'tether', 'cardano', 'ripple', 'dogecoin', 'polkadot', 'uniswap', 'solana', 'chainlink', 'litecoin'],
+        crypto: {}
       }
     },
     methods: {
@@ -125,16 +99,15 @@
         this.currentView = `daily${days}`
 
         // Calculate & Display daily average prices over the past 100 days
-        this.$api.get(`/coins/${this.crypto.id}/market_chart?vs_currency=usd&days=${days}`).then((response) => {
-          this.dailyData = response.data;
+        let response = await this.$api.get(`/coins/${this.crypto.id}/market_chart?vs_currency=usd&days=${days}`);
+        this.dailyData = response.data;
 
-          this.chart.options.xaxis.categories = this.dailyData.prices.map((price) => {
-            return price[0];
-          });
+        this.chart.options.xaxis.categories = this.dailyData.prices.map((price) => {
+          return price[0];
+        });
 
-          this.chart.series[0].data = this.dailyData.prices.map((price) => {
-            return Math.round(price[1] * 10000) / 10000;
-          });
+        this.chart.series[0].data = this.dailyData.prices.map((price) => {
+          return Math.round(price[1] * 10000) / 10000;
         });
       },
       async hourly(days){
@@ -142,16 +115,15 @@
         this.currentView = `hourly${days}`
 
         // Display hourly prices over the past 30 days
-        this.$api.get(`/coins/${this.crypto.id}/market_chart?vs_currency=usd&days=${days}`).then((response) => {
-          this.hourlyData = response.data;
+        let response = await this.$api.get(`/coins/${this.crypto.id}/market_chart?vs_currency=usd&days=${days}`);
+        this.hourlyData = response.data;
 
-          this.chart.options.xaxis.categories = this.hourlyData.prices.map((price) => {
-            return price[0];
-          });
+        this.chart.options.xaxis.categories = this.hourlyData.prices.map((price) => {
+          return price[0];
+        });
 
-          this.chart.series[0].data = this.hourlyData.prices.map((price) => {
-            return Math.round(price[1] * 10000) / 10000;
-          });
+        this.chart.series[0].data = this.hourlyData.prices.map((price) => {
+          return Math.round(price[1] * 10000) / 10000;
         });
       },
       async today(){
@@ -159,26 +131,26 @@
         this.currentView = `today`
 
         // Display hourly prices over the past 30 days
-        this.$api.get(`/coins/${this.crypto.id}/market_chart?vs_currency=usd&days=1`).then((response) => {
-          this.todayData = response.data;
+        let response = await this.$api.get(`/coins/${this.crypto.id}/market_chart?vs_currency=usd&days=1`)
+        this.todayData = response.data;
 
-          this.chart.options.xaxis.categories = this.todayData.prices.map((price) => {
-            return price[0];
-          });
+        this.chart.options.xaxis.categories = this.todayData.prices.map((price) => {
+          return price[0];
+        });
 
-          this.chart.series[0].data = this.todayData.prices.map((price) => {
-            return Math.round(price[1] * 10000) / 10000;
-          });
+        this.chart.series[0].data = this.todayData.prices.map((price) => {
+          return Math.round(price[1] * 10000) / 10000;
         });
       },
     },
     watch: {},
     mounted(){
-      this.daily(100);
-      this.loading = false;
+      this.$api.get(`/coins/markets?vs_currency=usd&ids=${this.watchList[0]}`).then((response) => {
+        this.crypto = response.data[0];
+        this.daily(100);
+      });
     },
     unmounted(){
-
     }
   });
 </script>

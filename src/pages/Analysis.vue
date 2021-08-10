@@ -1,36 +1,45 @@
 <template>
   <q-page>
+    <div class="row">
+      <div class="col-9">
+        <q-card>
+          <q-card-section>
+            <div class="text-h6">Trading chart of {{crypto.name}} [{{crypto.symbol.toUpperCase()}}]</div>
+          </q-card-section>
 
-    <q-card>
-      <q-card-section>
-        <div class="text-h6">Trading chart of {{crypto.name}} [{{crypto.symbol.toUpperCase()}}]</div>
-      </q-card-section>
+          <q-card-section>
+            <q-btn v-on:click="daily(100)">Daily (100 Days)</q-btn>
+            <q-btn v-on:click="hourly(30)">Houry (30 Days)</q-btn>
+            <q-btn v-on:click="hourly(10)">Houry (10 Days)</q-btn>
+            <q-btn v-on:click="today()">Today (5 Minutes)</q-btn>
+          </q-card-section>
 
-      <q-card-section>
-        <q-btn v-on:click="daily(100)">Daily (100 Days)</q-btn>
-        <q-btn v-on:click="hourly(30)">Houry (30 Days)</q-btn>
-        <q-btn v-on:click="hourly(10)">Houry (10 Days)</q-btn>
-        <q-btn v-on:click="today()">Today (5 Minutes)</q-btn>
-      </q-card-section>
-
-      <q-card-section>
-        <apexchart
-        height="500px"
-        type="line" 
-        :options="chart.options" 
-        :series="chart.series"
-        ></apexchart>
-      </q-card-section>
-    </q-card>
-
+          <q-card-section>
+            <apexchart
+            height="500px"
+            type="line" 
+            :options="chart.options" 
+            :series="chart.series"
+            ></apexchart>
+          </q-card-section>
+        </q-card>
+      </div>
+      <div class="col-3">
+        <WatchList @analyze="analyzeCrypto($event)"/>
+      </div>
+    </div>
   </q-page>
 </template>
 
 <script>
   import { defineComponent } from 'vue';
+  import WatchList from '../components/WatchList.vue';
 
   export default defineComponent({
     name: 'Analysis',
+    components: {
+      WatchList
+    },
     props: [],
     data(){
       return {
@@ -82,7 +91,11 @@
       }
     },
     methods: {
-      daily(days){
+      analyzeCrypto(val){
+        this.crypto = val;
+        this.daily(100);
+      },
+      async daily(days){
         // Calculate & Display daily average prices over the past 100 days
         this.$api.get(`/coins/${this.crypto.id}/market_chart?vs_currency=usd&days=${days}`).then((response) => {
           this.dailyData = response.data;
@@ -97,7 +110,7 @@
           });
         });
       },
-      hourly(days){
+      async hourly(days){
         // Display hourly prices over the past 30 days
         this.$api.get(`/coins/${this.crypto.id}/market_chart?vs_currency=usd&days=${days}`).then((response) => {
           this.hourlyData = response.data;
@@ -112,7 +125,7 @@
           });
         });
       },
-      today(){
+      async today(){
         // Display hourly prices over the past 30 days
         this.$api.get(`/coins/${this.crypto.id}/market_chart?vs_currency=usd&days=1`).then((response) => {
           this.todayData = response.data;

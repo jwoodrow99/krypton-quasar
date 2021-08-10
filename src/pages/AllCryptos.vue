@@ -1,6 +1,10 @@
 <template>
   <q-page>
-    <CryptoCard v-for="crypto in data" :key="crypto.id" :crypto="crypto"/>
+    <q-card v-for="crypto in data" :key="crypto.id">
+      <q-card-section>
+        <CryptoCard :crypto="crypto"/>
+      </q-card-section>
+    </q-card>
   </q-page>
 </template>
 

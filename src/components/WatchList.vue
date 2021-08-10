@@ -1,4 +1,5 @@
 <template>
+  <q-scroll-area style="height: 100%; max-width: 100%;">
     <q-card v-for="coinMarket in coinMarketData" :key="coinMarket.id">
       <q-card-section>
         <CryptoCard :crypto="coinMarket"/>
@@ -8,6 +9,7 @@
         <q-btn v-on:click="analyze(coinMarket)" label="Analyze" />
       </q-card-actions>
     </q-card>
+  </q-scroll-area>
 </template>
 
 <script>
@@ -34,14 +36,17 @@
     },
     watch: {},
     mounted(){
-
       this.$api.get(`/coins/markets?vs_currency=usd&ids=${this.cryptoList.join()}`).then((response) => {
         this.coinMarketData = response.data;
-        console.log(this.coinMarketData);
       });
-
     },
     unmounted(){
     }
   });
 </script>
+
+<style lang="scss" scoped>
+  .q-card{
+    margin: 10px;
+  }
+</style>

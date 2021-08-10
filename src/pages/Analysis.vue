@@ -3,24 +3,35 @@
     <div class="row">
       <div class="col-9">
         <q-card>
-          <q-card-section>
+          <q-card-section class="row">
             <div class="text-h6">Trading chart of {{crypto.name}} [{{crypto.symbol.toUpperCase()}}]</div>
           </q-card-section>
 
           <q-card-section>
-            <q-btn v-on:click="daily(100)">Daily (100 Days)</q-btn>
-            <q-btn v-on:click="hourly(30)">Houry (30 Days)</q-btn>
-            <q-btn v-on:click="hourly(10)">Houry (10 Days)</q-btn>
-            <q-btn v-on:click="today()">Today (5 Minutes)</q-btn>
+            <q-btn :class="(currentView == 'daily100')?'selected':''" v-on:click="daily(100)">Daily (100 Days)</q-btn>
+            <q-btn :class="(currentView == 'hourly30')?'selected':''" v-on:click="hourly(30)">Houry (30 Days)</q-btn>
+            <q-btn :class="(currentView == 'hourly10')?'selected':''" v-on:click="hourly(10)">Houry (10 Days)</q-btn>
+            <q-btn :class="(currentView == 'today')?'selected':''" v-on:click="today()">Today (5 Minutes)</q-btn>
           </q-card-section>
 
           <q-card-section>
-            <apexchart
-            height="500px"
-            type="line" 
-            :options="chart.options" 
-            :series="chart.series"
-            ></apexchart>
+            <div class="chart_container">
+              <q-circular-progress
+              class="loading"
+              v-if="loading"
+              indeterminate
+              size="50px"
+              />
+
+              <apexchart
+              :class="(loading)?'blur':''"
+              height="500px"
+              type="line" 
+              :options="chart.options" 
+              :series="chart.series"
+              @animationEnd="chartRender($event)"
+              ></apexchart>
+            </div>
           </q-card-section>
         </q-card>
       </div>
@@ -60,6 +71,8 @@
         dailyData: {},
         hourlyData: {},
         todayData: {},
+        loading: false,
+        currentView: '',
         crypto: {
           id: "cardano",
           symbol: "ada",
@@ -91,15 +104,29 @@
       }
     },
     methods: {
+      chartRender(val){
+        this.loading = false;
+      },
       analyzeCrypto(val){
         this.crypto = val;
-        this.daily(100);
+
+        if(this.currentView == 'daily100'){
+          this.daily(100);
+        } else if(this.currentView == 'hourly30') {
+          this.hourly(30);
+        } else if(this.currentView == 'hourly10') {
+          this.hourly(10);
+        } else if(this.currentView == 'today') {
+          this.today();
+        }
       },
       async daily(days){
+        this.loading = true;
+        this.currentView = `daily${days}`
+
         // Calculate & Display daily average prices over the past 100 days
         this.$api.get(`/coins/${this.crypto.id}/market_chart?vs_currency=usd&days=${days}`).then((response) => {
           this.dailyData = response.data;
-          console.log(this.dailyData);
 
           this.chart.options.xaxis.categories = this.dailyData.prices.map((price) => {
             return price[0];
@@ -111,10 +138,12 @@
         });
       },
       async hourly(days){
+        this.loading = true;
+        this.currentView = `hourly${days}`
+
         // Display hourly prices over the past 30 days
         this.$api.get(`/coins/${this.crypto.id}/market_chart?vs_currency=usd&days=${days}`).then((response) => {
           this.hourlyData = response.data;
-          console.log(this.hourlyData);
 
           this.chart.options.xaxis.categories = this.hourlyData.prices.map((price) => {
             return price[0];
@@ -126,10 +155,12 @@
         });
       },
       async today(){
+        this.loading = true;
+        this.currentView = `today`
+
         // Display hourly prices over the past 30 days
         this.$api.get(`/coins/${this.crypto.id}/market_chart?vs_currency=usd&days=1`).then((response) => {
           this.todayData = response.data;
-          console.log(this.todayData);
 
           this.chart.options.xaxis.categories = this.todayData.prices.map((price) => {
             return price[0];
@@ -144,9 +175,27 @@
     watch: {},
     mounted(){
       this.daily(100);
+      this.loading = false;
     },
     unmounted(){
 
     }
   });
 </script>
+
+<style lang="scss" scoped>
+  .loading{
+    position: absolute;
+    left: calc(50% - 50px);
+    top: calc(50% - 50px);
+    z-index: 1;
+  }
+
+  .blur{
+    opacity: 50%;
+  }
+
+  .selected{
+    background-color: lightgray;
+  }
+</style>

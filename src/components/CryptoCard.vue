@@ -1,12 +1,18 @@
 <template>
-  <!-- <q-card-section>
-    <img width="" :src="crypto.image">
-  </q-card-section> -->
+  <div class="row">
 
-  <div class="text-h6">{{crypto.name}} [{{crypto.symbol}}]</div>
-  <p>Current Price: {{crypto.current_price}} (USD)</p>
-  <p>Market Cap: {{crypto.market_cap}}</p>
-  <p>24H Volume: {{crypto.total_volume}}</p>
+    <div class="img col-1">
+      <q-img style="width:100px" :src="crypto.image" />
+    </div>
+
+    <div class="content col">
+      <div class="text-h6">{{crypto.name}} [{{crypto.symbol}}]</div>
+      <p>Current Price: {{crypto.current_price}} (USD)</p>
+      <p>Market Cap: {{crypto.market_cap}}</p>
+      <p>24H Volume: {{crypto.total_volume}}</p>
+    </div>
+
+  </div>
 </template>
 
 <script>
@@ -30,3 +36,14 @@
     }
   });
 </script>
+
+<style lang="scss" scoped>
+  .content{
+    margin-left: 15px;
+  }
+
+  .img{
+    display: flex;
+    align-items: center;
+  }
+</style>

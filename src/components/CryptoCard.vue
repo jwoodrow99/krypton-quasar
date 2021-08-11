@@ -17,6 +17,7 @@
 
 <script>
   import { defineComponent } from 'vue';
+  import {ls_set, ls_get} from '../utility/localDB';
 
   export default defineComponent({
     name: 'CryptoCard',
@@ -31,6 +32,7 @@
     },
     watch: {},
     mounted(){
+      ls_set('watchlist', ['bitcoin', 'ethereum', 'tether', 'cardano', 'ripple', 'dogecoin', 'polkadot', 'uniswap', 'solana', 'chainlink', 'litecoin']);
     },
     unmounted(){
     }

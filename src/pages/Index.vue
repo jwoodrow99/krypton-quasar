@@ -20,17 +20,46 @@
       ></apexchart>
 
     </q-card>
+
+    <q-card style="height: 50vh">
+      <div class="test" style="height: 100%">
+        <TradingView style="height: 100%" :key="tradingViewOptions.symbol"/> <!-- :options="tradingViewOptions" -->
+      </div>
+    </q-card>
+
+    <q-card>
+      <q-btn label="Etherium" v-on:click="changeCurrency('ETH')"/>
+      <q-btn label="Bitcoin" v-on:click="changeCurrency('BTC')"/>
+    </q-card>
   </q-page>
 </template>
 
 <script>
   import { defineComponent } from 'vue';
+  import TradingView from '../components/TradingView';
 
   export default defineComponent({
     name: 'PageIndex',
+    components: {
+      TradingView,
+    },
     props: [],
     data(){
       return { 
+        tradingViewOptions: {
+          symbol: 'BINANCE:ETHUSDT',
+          theme: 'dark',
+          autosize: false,
+          allow_symbol_change: false,
+          withdateranges: true,
+          hide_side_toolbar: false,
+          details: true,
+          show_popup_button: true,
+          studies: [
+            'BB@tv-basicstudies',
+            'MACD@tv-basicstudies'
+          ]
+        },
         options: {
           chart: {
             id: 'vuechart-example'
@@ -47,7 +76,11 @@
         coin_list: {}
       }
     },
-    methods: {},
+    methods: {
+      changeCurrency(code){
+        this.tradingViewOptions.symbol = `BINANCE:${code}USDT`;
+      }
+    },
     watch: {},
     mounted(){
       this.$api.get('/ping').then((response) => {

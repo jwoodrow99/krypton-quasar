@@ -58,6 +58,10 @@
     mounted(){
       this.cryptoList = ls_get('watchlist');
 
+      if(this.cryptoList == null){
+        ls_set('watchlist', ['bitcoin', 'ethereum', 'tether', 'cardano', 'ripple', 'dogecoin', 'polkadot', 'uniswap', 'solana', 'chainlink', 'litecoin']);
+      }
+
       this.$api.get(`/coins/markets?vs_currency=usd&ids=${this.cryptoList.join()}`).then((response) => {
         this.coinMarketData = response.data;
       });

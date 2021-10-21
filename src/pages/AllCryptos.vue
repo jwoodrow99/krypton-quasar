@@ -46,7 +46,10 @@
         });
 
         ls_set('wallet', rawWallet);
-        this.wallet = rawWallet;
+
+        this.wallet = rawWallet.map((crypto) => {
+          return crypto.id;
+        });
       }
     },
     watch: {},

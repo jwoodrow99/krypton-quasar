@@ -2,41 +2,27 @@
   <q-page>
     <div class="row">
       <div class="col-9">
-        <q-card>
-          <q-card-section class="row">
-            <div class="text-h6">Trading chart of {{crypto?.name}} [{{crypto?.symbol?.toUpperCase()}}]</div>
-          </q-card-section>
-
-          <q-card-section>
-            <q-btn :class="(currentView == 'daily100')?'selected':''" v-on:click="daily(100)">Daily (100 Days)</q-btn>
-            <q-btn :class="(currentView == 'hourly30')?'selected':''" v-on:click="hourly(30)">Houry (30 Days)</q-btn>
-            <q-btn :class="(currentView == 'hourly10')?'selected':''" v-on:click="hourly(10)">Houry (10 Days)</q-btn>
-            <q-btn :class="(currentView == 'today')?'selected':''" v-on:click="today()">Today (5 Minutes)</q-btn>
-          </q-card-section>
-
-          <q-card-section>
-            <div class="chart_container">
-              <q-circular-progress
-              class="loading"
-              v-if="loading"
-              indeterminate
-              size="50px"
-              />
-
-              <apexchart
-              :class="(loading)?'blur':''"
-              height="500px"
-              type="line" 
-              :options="chart.options" 
-              :series="chart.series"
-              @animationEnd="chartRender($event)"
-              ></apexchart>
-            </div>
-          </q-card-section>
+        <q-card style="height: 80vh">
+          <div class="test" style="height: 100%">
+            <TradingView style="height: 100%" :key="tradingViewOptions.symbol" :options="tradingViewOptions" /> <!-- :options="tradingViewOptions" -->
+          </div>
         </q-card>
       </div>
       <div class="col-3">
-        <WatchList @analyze="analyzeCrypto($event)" />
+        <!-- <WatchList @analyze="analyzeCrypto($event)" /> -->
+
+        <q-card>
+          <q-select outlined v-model="crypto" :options="walletOptions" @update="select()">
+            <template v-slot:append>
+              <q-avatar v-if="crypto">
+                <img :src="crypto.image">
+              </q-avatar>
+            </template>
+          </q-select>
+          <q-btn v-on:click="select()" label="select"/>
+        </q-card>
+
+        <q-btn v-on:click="getPrice()" label="get price" />
       </div>
     </div>
   </q-page>
@@ -44,119 +30,102 @@
 
 <script>
   import { defineComponent } from 'vue';
-  import WatchList from '../components/WatchList.vue';
   import {ls_set, ls_get} from '../utility/localDB';
+  import TradingView from '../components/TradingView';
 
   export default defineComponent({
     name: 'Analysis',
     components: {
-      WatchList
+      TradingView,
     },
     props: [],
     data(){
       return {
-        chart: {
-          options: {
-            chart: {
-              id: 'Analysis'
-            },
-            xaxis: {
-              categories: []
-            }
-          },
-          series: [{
-            name: 'price',
-            data: []
-          }],
+        tradingViewOptions: {
+          symbol: 'BINANCE:ETHUSDT',
+          theme: 'dark',
+          autosize: true,
+          allow_symbol_change: false,
+          withdateranges: true,
+          hide_side_toolbar: false,
+          details: true,
+          show_popup_button: true,
+          studies: [
+            'BB@tv-basicstudies',
+            'MACD@tv-basicstudies'
+          ]
         },
-        dailyData: {},
-        hourlyData: {},
-        todayData: {},
-        loading: false,
-        currentView: '',
-        watchList: null,
-        crypto: {}
+        crypto: {},
+        wallet: [],
       }
     },
     methods: {
-      chartRender(val){
-        this.loading = false;
-      },
       analyzeCrypto(val){
-        this.crypto = val;
-
-        if(this.currentView == 'daily100'){
-          this.daily(100);
-        } else if(this.currentView == 'hourly30') {
-          this.hourly(30);
-        } else if(this.currentView == 'hourly10') {
-          this.hourly(10);
-        } else if(this.currentView == 'today') {
-          this.today();
+        let stableCoins = ['usdt', 'dai'];
+        if(stableCoins.includes(val.symbol)){
+          this.tradingViewOptions.symbol = `COINBASE:${val.symbol}USD`;
+        } else {
+          this.tradingViewOptions.symbol = `BINANCE:${val.symbol.toUpperCase()}USDT`;
         }
       },
-      async daily(days, load = true){
-        this.loading = load;
-        this.currentView = `daily${days}`
-
-        // Calculate & Display daily average prices over the past 100 days
-        let response = await this.$api.get(`/coins/${this.crypto.id}/market_chart?vs_currency=usd&days=${days}`);
-        this.dailyData = response.data;
-
-        this.chart.options.xaxis.categories = this.dailyData.prices.map((price) => {
-          return price[0];
-        });
-
-        this.chart.series[0].data = this.dailyData.prices.map((price) => {
-          return Math.round(price[1] * 10000) / 10000;
-        });
+      select(){
+        this.analyzeCrypto(this.crypto);
       },
-      async hourly(days, load = true){
-        this.loading = load;
-        this.currentView = `hourly${days}`
-
-        // Display hourly prices over the past 30 days
-        let response = await this.$api.get(`/coins/${this.crypto.id}/market_chart?vs_currency=usd&days=${days}`);
-        this.hourlyData = response.data;
-
-        this.chart.options.xaxis.categories = this.hourlyData.prices.map((price) => {
-          return price[0];
+      getPrice(){
+        this.$axios.get(`https://api.binance.com/api/v3/avgPrice?symbol=${this.crypto.symbol.toUpperCase()}USDT`).then((response) => {
+          console.log(response.data);
         });
-
-        this.chart.series[0].data = this.hourlyData.prices.map((price) => {
-          return Math.round(price[1] * 10000) / 10000;
-        });
-      },
-      async today(load = true){
-        this.loading = load;
-        this.currentView = `today`
-
-        // Display hourly prices over the past 30 days
-        let response = await this.$api.get(`/coins/${this.crypto.id}/market_chart?vs_currency=usd&days=1`)
-        this.todayData = response.data;
-
-        this.chart.options.xaxis.categories = this.todayData.prices.map((price) => {
-          return price[0];
-        });
-
-        this.chart.series[0].data = this.todayData.prices.map((price) => {
-          return Math.round(price[1] * 10000) / 10000;
-        });
-      },
+      }
     },
     watch: {},
     mounted(){
-      this.watchList = ls_get('watchlist');
 
-      if(this.watchList == null || this.watchList.length < 1){
-        this.watchList = ['bitcoin', 'ethereum', 'tether'];
-        ls_set('watchlist', this.watchList);
+      let wallet = ls_get('wallet');
+      if(wallet == null){
+        ls_set('wallet', [
+          {
+            "id": "tether",
+            "symbol": "usdt",
+            "name": "Tether",
+            "amount": 10000,
+            "image": "https://assets.coingecko.com/coins/images/325/large/Tether-logo.png?1598003707"
+          },
+          {
+            "id": "bitcoin",
+            "symbol": "btc",
+            "name": "Bitcoin",
+            "amount": 0.005,
+            "image": "https://assets.coingecko.com/coins/images/1/large/bitcoin.png?1547033579"
+          },
+          {
+            "id": "ethereum",
+            "symbol": "eth",
+            "name": "Ethereum",
+            "amount": 0.2,
+            "image": "https://assets.coingecko.com/coins/images/279/large/ethereum.png?1595348880"
+          },
+          {
+            "id": "binancecoin",
+            "symbol": "bnb",
+            "name": "Binance Coin",
+            "amount": 0.5,
+            "image": "https://assets.coingecko.com/coins/images/825/large/binance-coin-logo.png?1547034615"
+          },
+        ]);
+        wallet = ls_get('wallet');
       }
 
-      this.$api.get(`/coins/markets?vs_currency=usd&ids=${this.watchList[0]}`).then((response) => {
-        this.crypto = response.data[0];
-        this.daily(100, false);
+      this.wallet = wallet;
+
+      this.walletOptions = wallet.filter((crypto) => {
+        if (!['usdt', 'dai', 'busd', 'usdc'].includes(crypto.symbol)){
+          crypto.label = crypto.name;
+          return crypto;
+        }
       });
+
+      this.crypto = this.walletOptions[0];
+      this.analyzeCrypto(this.crypto);
     },
     unmounted(){
     }
@@ -164,17 +133,6 @@
 </script>
 
 <style lang="scss" scoped>
-  .loading{
-    position: absolute;
-    left: calc(50% - 50px);
-    top: calc(50% - 50px);
-    z-index: 1;
-  }
-
-  .blur{
-    opacity: 50%;
-  }
-
   .selected{
     background-color: lightgray;
   }

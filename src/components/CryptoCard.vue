@@ -32,7 +32,6 @@
     },
     watch: {},
     mounted(){
-      ls_set('watchlist', ['bitcoin', 'ethereum', 'tether', 'cardano', 'ripple', 'dogecoin', 'polkadot', 'uniswap', 'solana', 'chainlink', 'litecoin']);
     },
     unmounted(){
     }

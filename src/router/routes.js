@@ -7,6 +7,7 @@ const routes = [
       { path: '/', component: () => import('pages/Index.vue') },
       { path: '/analysis', component: () => import('pages/Analysis.vue') },
       { path: '/all_cryptos', component: () => import('pages/AllCryptos.vue') },
+      { path: '/wallet', component: () => import('pages/Wallet.vue') },
     ]
   },
 

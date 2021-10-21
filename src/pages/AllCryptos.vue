@@ -6,7 +6,7 @@
       </q-card-section>
 
       <q-card-actions>
-        <q-btn v-if="!watchlist.includes(crypto.id)" v-on:click="test(crypto)" label="Add To Watch List" />
+        <q-btn v-if="!wallet.includes(crypto.id)" v-on:click="addToWallet(crypto)" label="Add To Wallet" />
       </q-card-actions>
     </q-card>
   </q-page>
@@ -26,18 +26,37 @@
     data(){
       return {
         data: [],
-        watchlist: [],
+        wallet: [],
         current_page: 1
       }
     },
     methods: {
       test(val){
-        ls_set('watchlist', ['bitcoin', 'ethereum', 'tether', 'cardano', 'ripple', 'dogecoin', 'polkadot', 'uniswap', 'solana', 'chainlink', 'litecoin']);
+        console.log(val);
+      },
+      addToWallet(crypto){
+        let rawWallet = ls_get('wallet');
+
+        rawWallet.push({
+          id: crypto.id,
+          name: crypto.name,
+          symbol: crypto.symbol,
+          image: crypto.image,
+          amount: 0
+        });
+
+        ls_set('wallet', rawWallet);
+        this.wallet = rawWallet;
       }
     },
     watch: {},
     mounted(){
-      this.watchlist = ls_get('watchlist');
+
+      let rawWallet = ls_get('wallet');
+
+      this.wallet = rawWallet.map((crypto) => {
+        return crypto.id;
+      });
 
       this.$api.get(`/coins/markets?vs_currency=usd&per_page=50&page=${this.current_page}`).then((response) => {
         this.data = response.data;

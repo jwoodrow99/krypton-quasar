@@ -22,6 +22,10 @@
           All Cryptos
         </q-btn>
 
+        <q-btn flat v-on:click="this.$router.push('/wallet')">
+          Wallet
+        </q-btn>
+
       </q-toolbar>
     </q-header>
 

@@ -6,7 +6,7 @@
     </div>
 
     <div>
-      <q-input outlined v-model="aditionalFunds" label="Add Funds" />
+      <q-input outlined type="number" v-model="aditionalFunds" label="Add Funds" />
       <q-btn v-on:click="addFunds()" label="Deposit" />
     </div>
 
@@ -47,7 +47,7 @@
     data(){
       return {
         wallet: [],
-        total: 100,
+        total: 0,
         aditionalFunds: 0,
         columns: [
           { name: 'logo', align: 'center', label: 'Logo', field: '' },
@@ -76,44 +76,11 @@
         ls_set('wallet', this.wallet);
         this.aditionalFunds = 0;
         this.total = total;
-      }
+      },
     },
     watch: {},
     async mounted(){
       let wallet = ls_get('wallet');
-      if(wallet == null){
-        ls_set('wallet', [
-          {
-            "id": "tether",
-            "symbol": "usdt",
-            "name": "Tether",
-            "amount": 10000,
-            "image": "https://assets.coingecko.com/coins/images/325/large/Tether-logo.png?1598003707"
-          },
-          {
-            "id": "bitcoin",
-            "symbol": "btc",
-            "name": "Bitcoin",
-            "amount": 0,
-            "image": "https://assets.coingecko.com/coins/images/1/large/bitcoin.png?1547033579"
-          },
-          {
-            "id": "ethereum",
-            "symbol": "eth",
-            "name": "Ethereum",
-            "amount": 0,
-            "image": "https://assets.coingecko.com/coins/images/279/large/ethereum.png?1595348880"
-          },
-          {
-            "id": "binancecoin",
-            "symbol": "bnb",
-            "name": "Binance Coin",
-            "amount": 0,
-            "image": "https://assets.coingecko.com/coins/images/825/large/binance-coin-logo.png?1547034615"
-          },
-        ]);
-        wallet = ls_get('wallet');
-      }
 
       this.wallet = await Promise.all(wallet.map(async (crypto) => {
         if(crypto.symbol == 'usdt') {

@@ -60,22 +60,34 @@
       }
     },
     methods: {
-      addFunds(){
-        let total = 0;
+      async addFunds(){
 
-        this.wallet.map((crypto) => {
+        this.total = 0;
+
+        let wallet = ls_get('wallet');
+        wallet = wallet.map((crypto) => {
           if(crypto.id == 'tether'){
             crypto.amount = Number(crypto.amount) + Number(this.aditionalFunds);
           }
-
-          total = Number(total) + Number(crypto.amount);
-
           return crypto;
         });
 
-        ls_set('wallet', this.wallet);
+        ls_set('wallet', wallet);
+
+        this.wallet = await Promise.all(wallet.map(async (crypto) => {
+          if(crypto.symbol == 'usdt') {
+            crypto.market = 1;
+          } else if (!['dai', 'busd', 'usdc'].includes(crypto.symbol)){
+            let res = await this.$axios.get(`https://api.binance.com/api/v3/avgPrice?symbol=${crypto.symbol.toUpperCase()}USDT`);
+            crypto.market = res.data.price;
+          }
+          crypto.value = (Number(crypto.amount) * Number(crypto.market)).toFixed(2);
+          this.total += Number(crypto.value);
+          return crypto;
+        }));
+
         this.aditionalFunds = 0;
-        this.total = total;
+        this.total = this.total.toFixed(2);
       },
     },
     watch: {},

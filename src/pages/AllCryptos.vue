@@ -10,6 +10,7 @@
       </q-card-actions>
     </q-card> -->
 
+      <!-- @virtual-scroll="onScroll" -->
       <q-table
         class="my-sticky-dynamic"
         style="height: 80vh"
@@ -22,7 +23,7 @@
         :virtual-scroll-sticky-size-start="250"
         :pagination="pagination"
         :rows-per-page-options="[0]"
-        @virtual-scroll="onScroll"
+        
         selection="multiple"
         v-model:selected="selected"
       >
@@ -90,8 +91,25 @@
       },
       nextPage(){
         this.current_page++;
-        this.$api.get(`/coins/markets?vs_currency=usd&per_page=250&page=${this.current_page}`).then((response) => {
-          this.data = this.data.concat(response.data);
+
+        // this.$api.get(`/coins/markets?vs_currency=usd&per_page=250&page=${this.current_page}`).then((response) => {
+        //   this.data = this.data.concat(response.data);
+        // });
+
+        this.$api.get(`/exchanges/binance/tickers?page=${this.current_page}`).then((binancePairs) => {
+          let usdtPairs = binancePairs.data.tickers.filter((cryptoPair) => {
+            if (cryptoPair.target == 'USDT'){
+              return cryptoPair;
+            }
+          });
+
+          let pairCoinArray = usdtPairs.map((pair) => {
+            return pair.coin_id;
+          });
+
+          this.$api.get(`/coins/markets?vs_currency=usd&ids=${pairCoinArray}`).then((response) => {
+            this.data = this.data.concat(response.data);
+          });
         });
       },
       onScroll(){
@@ -121,8 +139,6 @@
         this.wallet = rawWallet.map((crypto) => {
           return crypto.id;
         });
-
-        console.log(this.wallet);
       },
     },
     watch: {},
@@ -134,19 +150,31 @@
         return crypto.id;
       });
 
-      this.$api.get(`/coins/markets?vs_currency=usd&per_page=250&page=${this.current_page}`).then((response) => {
-        this.data = response.data;
-
-        let rawWallet = ls_get('wallet');
-
-        let symbolList = rawWallet.map((crypto) => {
-           return crypto.symbol;
+      this.$api.get(`/exchanges/binance/tickers?page${this.current_page}`).then((binancePairs) => {
+        let usdtPairs = binancePairs.data.tickers.filter((cryptoPair) => {
+          if (cryptoPair.target == 'USDT'){
+            return cryptoPair;
+          }
         });
 
-        this.data.forEach((crypto) => {
-          if(symbolList.includes(crypto.symbol)){
-            this.selected.push(crypto);
-          }
+        let pairCoinArray = usdtPairs.map((pair) => {
+          return pair.coin_id;
+        });
+
+        this.$api.get(`/coins/markets?vs_currency=usd&ids=${pairCoinArray}`).then((response) => {
+          this.data = response.data;
+
+          let rawWallet = ls_get('wallet');
+
+          let symbolList = rawWallet.map((crypto) => {
+              return crypto.symbol;
+          });
+
+          this.data.forEach((crypto) => {
+            if(symbolList.includes(crypto.symbol)){
+              this.selected.push(crypto);
+            }
+          });
         });
       });
     },

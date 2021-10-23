@@ -1,15 +1,5 @@
 <template>
   <q-page>
-    <!-- <q-card v-for="crypto in data" :key="crypto.id">
-      <q-card-section>
-        <CryptoCard :crypto="crypto"/>
-      </q-card-section>
-
-      <q-card-actions>
-        <q-btn v-if="!wallet.includes(crypto.id)" v-on:click="addToWallet(crypto)" label="Add To Wallet" />
-      </q-card-actions>
-    </q-card> -->
-
       <!-- @virtual-scroll="onScroll" -->
       <q-table
         class="my-sticky-dynamic"
@@ -46,13 +36,11 @@
 
 <script>
   import { defineComponent } from 'vue';
-  import CryptoCard from '../components/CryptoCard.vue';
   import {ls_set, ls_get} from '../utility/localDB';
 
   export default defineComponent({
     name: 'AllCrypto',
     components: {
-      //CryptoCard
     },
     props: [],
     data(){
@@ -90,11 +78,7 @@
         });
       },
       nextPage(){
-        this.current_page++;
-
-        // this.$api.get(`/coins/markets?vs_currency=usd&per_page=250&page=${this.current_page}`).then((response) => {
-        //   this.data = this.data.concat(response.data);
-        // });
+        this.current_page++;x
 
         this.$api.get(`/exchanges/binance/tickers?page=${this.current_page}`).then((binancePairs) => {
           let usdtPairs = binancePairs.data.tickers.filter((cryptoPair) => {
